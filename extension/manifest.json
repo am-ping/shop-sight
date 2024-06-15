@@ -1,0 +1,31 @@
+{
+    "manifest_version": 3,
+    "name": "Shop Sight",
+    "description": "Amazon Shopping Companion",
+    "version": "1.0",
+    "permissions": [
+        "activeTab", 
+        "tabs", 
+        "scripting", 
+        "tts"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "default_popup": "popup/popup.html",
+        "default_icon": "images/icon.png"
+    },
+    "icons": {
+        "16": "images/icon.png",
+        "32": "images/icon.png",
+        "48": "images/icon.png",
+        "128": "images/icon.png"
+    },
+    "content_scripts": [
+        {
+          "matches": ["https://*.amazon.ca/*/dp/*"],
+          "js": ["scripts/content.js"]
+        }
+    ]
+}

@@ -1,0 +1,55 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    text-align: center;
+    width: 300px;
+    height: 400px;
+    background-color: honeydew;
+}
+
+nav {
+    padding: 15px 15px 0 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#allButtonRequests {
+    padding: 10px;
+    display: flex;
+    justify-content: space-evenly;
+}
+
+button {
+    padding: 10px;
+    margin: 0 2px;
+    border: 2px solid black;
+    border-radius: 10px;
+    background-color: cadetblue;
+    color: white;
+}
+
+button:hover {
+    opacity: 0.9;
+}
+
+#status {
+    padding: 5px;
+    border-top: 2px dashed black;
+    border-bottom: 2px dashed black;
+    margin: 15px 0;
+}
+
+form {
+    padding: 10px;
+}
+
+textarea {
+    margin: 10px;
+    padding: 10px;
+    border: 2px solid black;
+    border-radius: 5px;
+}
