@@ -1,56 +1,38 @@
-const readProductInfo = document.getElementById('readProductInfo');
+let helpBtn = document.getElementById('helpBtn')
 
-// Event listener for the button click in the popup
-// send message to content script and receive image URL
-readProductInfo.addEventListener('click', async () => {
+helpBtn.addEventListener("click", async () => {
     try {
-        // Send message to content script to fetch image from Amazon
-        const response = await new Promise((resolve, reject) => {
-            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                chrome.tabs.sendMessage(tabs[0].id, { action: 'getProductInfo' }, (response) => {
-                    resolve(response);
-                });
-            });
-        });
-
-        const productInfo = response.productInfo;
-
-        const input = document.getElementById('userInput');
-        input.textContent = 'Getting product information...';
-
-        const output = document.getElementById('output');
-        output.textContent = 'Product info:\n' + productInfo;
-        chrome.tts.speak(output.textContent);
+        const voiceCmds = "To search for a product, say: 'Search for [product]'. To sort the results, say: 'Sort by [sorting option]'. To read the results, say: 'Read results'. This will include the product name, price, rating, and delivery time. To describe the product image on the product page, say: 'Describe image'. To read the product details on the product page, say: 'Read product details'. This will include the product name, price, rating, description, and delivery time. To add the product to your cart, say: 'Add to cart'."
+        chrome.tts.speak('The available commands are as follows:\n' + voiceCmds);
 
     } catch (error) {
-        console.error('Error fetching image from Amazon:', error);
+        console.error('Error listening to voice:', error);
     }
 });
 
-
-const descImg = document.getElementById('descImg');
-
-// Event listener for the button click in the popup
-// send message to content.js and get image
-descImg.addEventListener('click', async () => {
+// "Mic" button
+let listenBtn = document.getElementById('listenBtn')
+// clicking it sends a message from here (popup.js) to content.js
+listenBtn.addEventListener("click", async () => {
     try {
-        // Send message to content script to get image from Amazon
+        // this is the code to send the message, with action "listenVoice"
         const response = await new Promise((resolve, reject) => {
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                chrome.tabs.sendMessage(tabs[0].id, { action: 'getImage' }, (response) => {
+                chrome.tabs.sendMessage(tabs[0].id, { action: 'listenVoice' }, (response) => {
                     resolve(response);
                 });
             });
         });
 
-        const imageUrl = response.imageUrl;
+    } catch (error) {
+        console.error('Error listening to voice:', error);
+    }
+});
 
-        const input = document.getElementById('userInput');
-        input.textContent = 'Describe this image:\n' + imageUrl;
+chrome.runtime.onMessage.addListener(async function(request, sender, sendResponse) {
+    if (request.imageUrl) {
+        const imageUrl = request.imageUrl;
 
-        const output = document.getElementById('output');
-
-        // Send image URL to the server
         const result = await fetch('http://localhost:3000/describe-image', {
             method: 'POST',
             headers: {
@@ -59,75 +41,19 @@ descImg.addEventListener('click', async () => {
             body: JSON.stringify({ imageUrl })
         });
 
-        const data = await result.json();
-        output.textContent = 'Description:\n' + data;
-        chrome.tts.speak(output.textContent);
+        const desc = await result.json();
+        chrome.tts.speak('Description:\n' + desc);
 
-    } catch (error) {
-        console.error('Error fetching image from Amazon:', error);
-    }
-});
+    } else if (request.productInfo) {
+        const productInfo = request.productInfo;
 
-const stopTTS = document.getElementById('stopTTS');
+        chrome.tts.speak(productInfo);
 
-stopTTS.addEventListener('click', async () => {
-    chrome.tts.stop();
-});
+    } else if (request.title) {
+        chrome.tts.speak(request.title + " added to cart")
+    
+    } else if (request.stop) {
+        chrome.tts.stop();
 
-
-
-
-/*
-document.getElementById('submitBtn').addEventListener('click', async () => {
-    const userInput = document.getElementById('userInput').value;
-
-    if (userInput) {
-        try {
-            const response = await fetch('http://localhost:3000/run', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ query: userInput })
-            });
-
-            const result = await response.json();
-            console.log(result);
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
-});
-*/
-
-let listenBtn = document.getElementById('listenBtn')
-
-listenBtn.addEventListener("click", async () => {
-    const input = document.getElementById('userInput');
-    input.textContent = 'Listening...';
-
-    try {
-        const response = await new Promise((resolve, reject) => {
-            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                chrome.tabs.sendMessage(tabs[0].id, { action: 'listenVoice' }, (response) => {
-                    if (chrome.runtime.lastError) {
-                        reject(chrome.runtime.lastError);
-                    } else {
-                        resolve(response);
-                    }
-                });
-            });
-        });
-
-        if (response.error) {
-            throw new Error(response.error);
-        }
-
-        const voiceText = response.voiceText;
-        const output = document.getElementById('output');
-        output.textContent = "Voice-Text: " + voiceText;
-
-    } catch (error) {
-        console.error('Error listening to voice:', error);
     }
 });

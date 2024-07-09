@@ -8,22 +8,11 @@
     </head>
     <body>
         <nav>
-            <button class="button">Read</button>
+            <button id="helpBtn" class="button">Help</button>
             <h1>Shop Sight</h1>
-            <button id="listenBtn" class="button">Listen</button>
+            <button id="listenBtn" class="button">Mic</button>
         </nav>
-        <p id="status">Click 'Read' to have the page read aloud, or click 'Listen' to make a voice request</p>
-
-        <div id="allButtonRequests">
-            <button type="submit" value="Stop" class="button" id="stopTTS">Stop</button>
-            <button type="submit" value="Submit" class="button" id="readProductInfo">Read Product Info</button>
-            <button type="submit" value="Submit" class="button" id="descImg">Describe image</button>
-        </div>
-        <ul id="imageList"></ul>
-
-        <textarea id="userInput" rows="5" cols="33" placeholder="Input"></textarea>
-        <button type="submit" value="Submit" class="button" id="submitBtn">Submit</button>
-        <textarea id="output" rows="5" cols="33" placeholder="Output"></textarea>
+        <p id="status">Click the 'Help' button to list all available voice commands or the 'Mic' button to issue a voice command</p>
 
         <script src="popup.js"></script>
     </body>
