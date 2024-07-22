@@ -26,7 +26,7 @@ app.post('/describe-image', async (req, res) => {
             messages: [{
                 "role": "user",
                 "content": [
-                    { "type": "text", "text": "Describe this image in 10 words or less" },
+                    { "type": "text", "text": "Describe this image" },
                     { 
                         "type": "image_url", 
                         "image_url": { 
@@ -40,7 +40,7 @@ app.post('/describe-image', async (req, res) => {
   
         // Send back the description
         let description = response.choices[0].message.content;
-        console.log(description);
+        console.log(Date.now());
         res.json(description);
 
     } catch (error) {

@@ -35,6 +35,10 @@ button:hover {
     opacity: 0.9;
 }
 
+button:active {
+    background-color: hsl(182, 24%, 25%);
+}
+
 #status {
     padding: 5px;
     border-top: 2px dashed black;

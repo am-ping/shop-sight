@@ -1,5 +1,6 @@
+// "Help" button
 let helpBtn = document.getElementById('helpBtn')
-
+// clicking it makes the text-to-speech list all the available voice commmands
 helpBtn.addEventListener("click", async () => {
     try {
         const voiceCmds = "To search for a product, say: 'Search for [product]'. To sort the results, say: 'Sort by [sorting option]'. To read the results, say: 'Read results'. This will include the product name, price, rating, and delivery time. To describe the product image on the product page, say: 'Describe image'. To read the product details on the product page, say: 'Read product details'. This will include the product name, price, rating, description, and delivery time. To add the product to your cart, say: 'Add to cart'."
@@ -16,7 +17,7 @@ let listenBtn = document.getElementById('listenBtn')
 listenBtn.addEventListener("click", async () => {
     try {
         // this is the code to send the message, with action "listenVoice"
-        const response = await new Promise((resolve, reject) => {
+        await new Promise((resolve, reject) => {
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                 chrome.tabs.sendMessage(tabs[0].id, { action: 'listenVoice' }, (response) => {
                     resolve(response);
@@ -29,8 +30,22 @@ listenBtn.addEventListener("click", async () => {
     }
 });
 
+// Add event listeners for keyboard shortcuts
+document.addEventListener('keydown', (event) => {
+    const key = event.key.toLowerCase();
+
+    if (key === 'h') {
+        // Trigger the Help button action
+        helpBtn.click();
+    } else if (key === 'm') {
+        // Trigger the Mic button action
+        listenBtn.click();
+    }
+});
+
 chrome.runtime.onMessage.addListener(async function(request, sender, sendResponse) {
     if (request.imageUrl) {
+        // if we get imageURL from content.js, then run this
         const imageUrl = request.imageUrl;
 
         const result = await fetch('http://localhost:3000/describe-image', {
@@ -43,17 +58,12 @@ chrome.runtime.onMessage.addListener(async function(request, sender, sendRespons
 
         const desc = await result.json();
         chrome.tts.speak('Description:\n' + desc);
+        console.log("Description: " + desc);
+        console.log("Image description ended at: " + Date.now() + "  ms");
 
-    } else if (request.productInfo) {
-        const productInfo = request.productInfo;
+    }
 
-        chrome.tts.speak(productInfo);
-
-    } else if (request.title) {
-        chrome.tts.speak(request.title + " added to cart")
-    
-    } else if (request.stop) {
-        chrome.tts.stop();
-
+    if (message.action === 'triggerHelp') {
+        helpBtn.click();
     }
 });
