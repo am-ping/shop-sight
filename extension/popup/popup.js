@@ -3,7 +3,7 @@ let helpBtn = document.getElementById('helpBtn')
 // clicking it makes the text-to-speech list all the available voice commmands
 helpBtn.addEventListener("click", async () => {
     try {
-        const voiceCmds = "To search for a product, say: 'Search for [product]'. To sort the results, say: 'Sort by [sorting option]'. To read the results, say: 'Read results'. This will include the product name, price, rating, and delivery time. To describe the product image on the product page, say: 'Describe image'. To read the product details on the product page, say: 'Read product details'. This will include the product name, price, rating, description, and delivery time. To add the product to your cart, say: 'Add to cart'."
+        const voiceCmds = "To search for a product, say: 'Search for, [product name]'. To sort the results, say: 'Sort by, ascending, descending, new, reviews, best, or featured'. To read the results, say: 'Read results'. To select product for comparison, say 'Select product for comparison' when the product name is being read, or within the 5 seconds after it's read. To compare the products that have been selected, say 'compare products'. To navigate to the product page of the product, say 'select product' when the product name is being read, or within 5 seconds after it's read. To describe the product image on the product page, say: 'Describe image'. To read the product details on the product page, say: 'Read product details'. This will include the product name, price, rating and description. To add the product to your cart, say: 'Add to cart'."
         chrome.tts.speak('The available commands are as follows:\n' + voiceCmds);
 
     } catch (error) {

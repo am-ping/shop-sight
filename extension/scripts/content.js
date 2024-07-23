@@ -193,24 +193,62 @@ async function sort(method) {
 }
 
 async function readResults() {
-  for (let i = 2; i < 5; i++) {
-    let titleElement = document.querySelector(`[data-cel-widget="search_result_${i}"] [data-cy="title-recipe"]`);
-    let linkElement = document.querySelector(`[data-cel-widget="search_result_${i}"] [data-cy="title-recipe"] a`);
+  let ddSelected = document.querySelector("[aria-label='Sort by:").textContent;
+  let titleElement;
+  let linkElement;
+  let title;
+  let link;
 
-    if (titleElement && linkElement) {
-      let title = titleElement.textContent.trim();
+  if (ddSelected.includes("Featured")) {
+    for (let i = 6; i < 16; i++) {
+      title = document.querySelector(`[data-cel-widget="search_result_${i}"] [data-cy="title-recipe"]`).textContent.trim();
+      link = document.querySelector(`[data-cel-widget="search_result_${i}"] [data-cy="title-recipe"] a`).href;
+
       if (title.includes("SponsoredSponsored You are seeing this ad based on the product’s relevance to your search query.Let us know  ")) {
-        title = title.replace("SponsoredSponsored You are seeing this ad based on the product’s relevance to your search query.Let us know  ", "")
-        linkElement = document.querySelector(`[data-cel-widget="search_result_${i}"] [data-cy="title-recipe"] h2 a`);
+        title = title.replace("SponsoredSponsored You are seeing this ad based on the product’s relevance to your search query.Let us know  ", "");
+        link = document.querySelector(`[data-cel-widget="search_result_${i}"] [data-cy="title-recipe"] h2 a`).href;
       }
-
-      let link = linkElement.href;
-      
+        
       // Store the link of the current product being read
       localStorage.setItem("currentProductLink", link);
       console.log(title);
       await speak(title);
       await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+
+  } else if (ddSelected.includes("Best")) {
+    for (let i = 0; i < 10; i++) {
+      titleElement = document.querySelectorAll(`[data-cy="title-recipe"]:nth-of-type(${1})`)[i];
+      if (titleElement == null) {
+        continue;
+      }
+      linkElement = document.querySelectorAll(`[data-cy="title-recipe"]:nth-of-type(${1}) a`)[i];
+      title = titleElement.textContent.trim();
+      link = linkElement.href;
+        
+      // Store the link of the current product being read
+      localStorage.setItem("currentProductLink", link);
+      console.log(title);
+      await speak(title);
+      await new Promise(resolve => setTimeout(resolve, 5000));
+    }
+
+  } else {
+    for (let i = 0; i < 10; i++) {
+      title = document.querySelectorAll(`[data-cy="title-recipe"]:nth-of-type(${1})`)[i].textContent.trim();
+      link = document.querySelectorAll(`[data-cy="title-recipe"]:nth-of-type(${1}) a`)[i].href;
+
+      if (title.includes("SponsoredSponsored You are seeing this ad based on the product’s relevance to your search query.Let us know  ")) {
+        title = title.replace("SponsoredSponsored You are seeing this ad based on the product’s relevance to your search query.Let us know  ", "");
+        link = document.querySelector(`[data-cel-widget="search_result_${i}"] [data-cy="title-recipe"] h2 a`).href;
+      }
+        
+      // Store the link of the current product being read
+      localStorage.setItem("currentProductLink", link);
+      console.log(title);
+      await speak(title);
+      await new Promise(resolve => setTimeout(resolve, 5000));
+
     }
   }
 }
