@@ -63,9 +63,9 @@ function determineVoiceCmd(str) {
     console.log("'read results' voice command issued at: " + Date.now() + "  ms");
     readResults();
 
-  } else if (str.includes("select") && str.includes("product") && str.includes("comparison")) {
+  } else if (str.includes("add") && str.includes("comparison")) {
     // run the selectProduct function if input includes the word "select", "product" and "comparison"
-    console.log("'select product for comparison' voice command issued at: " + Date.now() + "  ms");
+    console.log("'add to comparison' voice command issued at: " + Date.now() + "  ms");
     selectProductForComparison();
     
   } else if (str.includes("compare products")) {
@@ -78,16 +78,19 @@ function determineVoiceCmd(str) {
   } else if (str.includes("compare rating") || str.includes("compare review")) {
     compareProducts("rating");
     
+  } else if (str.includes("compare images")) {
+    compareProducts("image");
+    
   } else if (str.includes("remove comparison products")) {
     console.log("'remove comparison products' voice command issued at: " + Date.now() + "  ms");
     clearComparison();
     
-  } else if (str.includes("select") && str.includes("product")) {
-    selectProduct();
+  } else if (str.includes("view product")) {
+    viewProduct();
     
   } else if (str.includes("describe") && str.includes("image")) {
     console.log("'describe image' voice command issued at: " + Date.now() + "  ms");
-    getImage();
+    mainImageDesc();
     
   } else if (str.includes("read product info")) {
     console.log("'read product info' voice command issued at: " + Date.now() + "  ms");
@@ -99,6 +102,7 @@ function determineVoiceCmd(str) {
   } else if (str.includes("stop")) {
     console.log("'stop' voice command issued at: " + Date.now() + "  ms");
     stop();
+
   }
 }
 
@@ -193,11 +197,12 @@ async function sort(method) {
 }
 
 async function readResults() {
-  let ddSelected = document.querySelector("[aria-label='Sort by:").textContent;
+  let ddSelected = document.querySelector("[aria-label='Sort by:']").textContent;
   let titleElement;
   let linkElement;
   let title;
   let link;
+  let imageUrl;
 
   if (ddSelected.includes("Featured")) {
     for (let i = 6; i < 16; i++) {
@@ -213,7 +218,7 @@ async function readResults() {
       localStorage.setItem("currentProductLink", link);
       console.log(title);
       await speak(title);
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise(resolve => setTimeout(resolve, 2500));
     }
 
   } else if (ddSelected.includes("Best")) {
@@ -225,18 +230,21 @@ async function readResults() {
       linkElement = document.querySelectorAll(`[data-cy="title-recipe"]:nth-of-type(${1}) a`)[i];
       title = titleElement.textContent.trim();
       link = linkElement.href;
+      imageUrl = document.querySelectorAll(`[data-component-type="s-product-image"]:nth-of-type(${1}) img`)[i].src;
         
       // Store the link of the current product being read
       localStorage.setItem("currentProductLink", link);
+      localStorage.setItem("currentProductImage", imageUrl);
       console.log(title);
       await speak(title);
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise(resolve => setTimeout(resolve, 2500));
     }
 
   } else {
     for (let i = 0; i < 10; i++) {
       title = document.querySelectorAll(`[data-cy="title-recipe"]:nth-of-type(${1})`)[i].textContent.trim();
       link = document.querySelectorAll(`[data-cy="title-recipe"]:nth-of-type(${1}) a`)[i].href;
+      imageUrl = document.querySelectorAll(`[data-component-type="s-product-image"]:nth-of-type(${1}) img`)[i].src;
 
       if (title.includes("SponsoredSponsored You are seeing this ad based on the product’s relevance to your search query.Let us know  ")) {
         title = title.replace("SponsoredSponsored You are seeing this ad based on the product’s relevance to your search query.Let us know  ", "");
@@ -245,15 +253,16 @@ async function readResults() {
         
       // Store the link of the current product being read
       localStorage.setItem("currentProductLink", link);
+      localStorage.setItem("currentProductImage", imageUrl);
       console.log(title);
       await speak(title);
-      await new Promise(resolve => setTimeout(resolve, 5000));
+      await new Promise(resolve => setTimeout(resolve, 2500));
 
     }
   }
 }
 
-async function selectProduct() {
+async function viewProduct() {
   const url = localStorage.getItem("currentProductLink");
   speak("Product selected. Now on the product page.");
   if (url) {
@@ -263,11 +272,16 @@ async function selectProduct() {
 
 async function selectProductForComparison() {
   let currentProductLink = localStorage.getItem("currentProductLink");
+  let currentProductImage = localStorage.getItem("currentProductImage");
   if (currentProductLink) {
     let comparisonProducts = JSON.parse(localStorage.getItem("comparisonProducts")) || [];
+  
     if (comparisonProducts.length < 2) {
       comparisonProducts.push(currentProductLink);
       localStorage.setItem("comparisonProducts", JSON.stringify(comparisonProducts));
+
+      await getImageDesc(currentProductImage);
+      
       speak("Product selected for comparison.");
     } else {
       speak("You have already selected two products for comparison.");
@@ -289,10 +303,10 @@ async function compareProducts(str) {
       comparisonText = 
       `Product 1: ${details1.title}.
       The price is ${details1.price}, and it has a rating of ${details1.stars} based on ${details1.numOfReviews}.
-      ${details1.about}\n` +
+      ${details1.about}. Image description: ${localStorage.getItem('product1')}.\n` +
       `Product 2: ${details2.title}.
       The price is ${details2.price}, and it has a rating of ${details2.stars} based on ${details2.numOfReviews}.
-      ${details2.about}`;
+      ${details2.about}. Image description: ${localStorage.getItem('product2')}.`;
 
     } else if (str == "price") {
       comparisonText = `Product 1: ${details1.title}. It's price is ${details1.price}.\n` +
@@ -301,6 +315,10 @@ async function compareProducts(str) {
     } else if (str == "rating") {
       comparisonText = `Product 1: ${details1.title}, has a rating of ${details1.stars} based on ${details1.numOfReviews}, ` +
                        `whereas product 2: ${details2.title}, has a rating of ${details2.stars} based on ${details2.numOfReviews}.`;
+
+    } else if (str == "image") {
+      comparisonText = `Product 1: ${details1.title}. Image description: ${localStorage.getItem('product1')}.\n` +
+                       `product 2: ${details2.title}. Image Description: ${localStorage.getItem('product2')}.`;
 
     }
 
@@ -314,26 +332,19 @@ async function compareProducts(str) {
 
 async function fetchProductDetails(url) {
   return new Promise((resolve, reject) => {
-    fetch(url).then(response => response.text()).then(html => {
+    fetch(url).then(response => response.text()).then(async html => {
       // Extract product details from the page
       let doc = new DOMParser().parseFromString(html, 'text/html');
       let productDetails = {};
-      
+
       productDetails.title = doc.querySelector("#productTitle").textContent.trim();
       productDetails.stars = doc.querySelector("#acrPopover").title;
       productDetails.numOfReviews = doc.querySelector("#acrCustomerReviewText").textContent.trim();
       let priceElement = doc.querySelector("#corePriceDisplay_desktop_feature_div > div.a-section.a-spacing-none.aok-align-center.aok-relative > span.a-price.aok-align-center.reinventPricePriceToPayMargin.priceToPay > span:nth-child(2)");
       productDetails.price = priceElement ? priceElement.textContent.trim() : "currently unavailable";
-      
-      const list = doc
-                    .querySelector('.a-unordered-list.a-vertical.a-spacing-mini')
-                    .querySelectorAll('li');
 
-      productDetails.about = "";
-    
-      list.forEach(item => {
-        productDetails.about += item.textContent.trim() + "\n";
-      });
+      const list = doc.querySelector('.a-unordered-list.a-vertical.a-spacing-mini').querySelectorAll('li');
+      productDetails.about = Array.from(list).map(item => item.textContent.trim()).join("\n");
 
       resolve(productDetails);
     }).catch(error => reject(error));
@@ -345,17 +356,18 @@ async function clearComparison() {
   speak("Products selected for comparison have now been removed.")
 }
 
-async function getImage() {
+async function getImageDesc(imageUrl) {
+  await new Promise((resolve, reject) => {
+    chrome.runtime.sendMessage({ comparisonImage: imageUrl });
+  });
+}
+
+async function mainImageDesc() {
   try {
-    // extract image url
-    const mainImage = document.querySelector('#imgTagWrapperId img');
-    const imageUrl = mainImage.src;
-    
-    // send image url from here (content.js) to popup.js because we need to send image url 
-    // from popup.js to the server where it will use chatgpt to get description
-    chrome.runtime.sendMessage({ imageUrl: imageUrl }, function(response) {
-      console.log('Image url sent to popup.js');
-    });
+    let mainImage = document.querySelector('#imgTagWrapperId img');
+    let imageUrl = mainImage.src;
+
+    chrome.runtime.sendMessage({ mainImageUrl: imageUrl });
 
   } catch (error) {
     console.error('Error fetching image:', error);
@@ -415,5 +427,13 @@ chrome.runtime.onMessage.addListener(async function(request, sender, sendRespons
   if (request.action === 'listenVoice') {
     // then it runs the function called listenVoice
     await listenVoice();
+  } else if (request.message) {
+    // store image description in localStorage
+    let desc = request.message;
+    if (localStorage.getItem('product1') == null) {
+      localStorage.setItem('product1', desc);
+    } else if (localStorage.getItem('product2') == null) {
+      localStorage.setItem('product2', desc);
+    }
   }
 });

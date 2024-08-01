@@ -1,10 +1,15 @@
+document.addEventListener('DOMContentLoaded', function() {
+    chrome.tts.speak('Press ctrl+alt+h keys or click the Help button to learn about the available voice commands, or press ctrl+alt+m keys or click the Mic button to issue voice commands.');
+});
+
 // "Help" button
 let helpBtn = document.getElementById('helpBtn')
 // clicking it makes the text-to-speech list all the available voice commmands
 helpBtn.addEventListener("click", async () => {
     try {
-        const voiceCmds = "To search for a product, say: 'Search for, [product name]'. To sort the results, say: 'Sort by, ascending, descending, new, reviews, best, or featured'. To read the results, say: 'Read results'. To select product for comparison, say 'Select product for comparison' when the product name is being read, or within the 5 seconds after it's read. To compare the products that have been selected, say 'compare products'. To navigate to the product page of the product, say 'select product' when the product name is being read, or within 5 seconds after it's read. To describe the product image on the product page, say: 'Describe image'. To read the product details on the product page, say: 'Read product details'. This will include the product name, price, rating and description. To add the product to your cart, say: 'Add to cart'."
-        chrome.tts.speak('The available commands are as follows:\n' + voiceCmds);
+        const voiceCmds = "Welcome to shop sight! Here are the commands you can use: To search for a product, say 'search for [product name]'. To sort the results, say 'sort by [criteria]'. If you want to read out the search results on the results page, say 'read results'. To open a product page, you can say 'view product'. For comparing products, use 'add to comparison' to select a product, and say 'compare products' to compare the selected products. You can also say 'compare price', 'compare rating' or 'compare images' for specific comparisons. To remove products from comparison, say 'remove comparison products'. To describe a product image on the product page, use the command 'describe image'. For reading detailed product information on the product page, say 'read product info'. To add a product to your cart on the product page, say 'add to cart'. Finally, if you want to stop the assistant from reading aloud, say 'stop'.";
+
+        chrome.tts.speak(voiceCmds);
 
     } catch (error) {
         console.error('Error listening to voice:', error);
@@ -30,23 +35,25 @@ listenBtn.addEventListener("click", async () => {
     }
 });
 
-// Add event listeners for keyboard shortcuts
+// event listeners for keyboard shortcuts
 document.addEventListener('keydown', (event) => {
     const key = event.key.toLowerCase();
 
-    if (key === 'h') {
-        // Trigger the Help button action
-        helpBtn.click();
-    } else if (key === 'm') {
-        // Trigger the Mic button action
-        listenBtn.click();
+    if (event.altKey && event.ctrlKey) {
+        if (key === 'h') {
+            // trigger the Help button
+            helpBtn.click();
+        } else if (key === 'm') {
+            // trigger the Mic button
+            listenBtn.click();
+        }
     }
 });
 
 chrome.runtime.onMessage.addListener(async function(request, sender, sendResponse) {
-    if (request.imageUrl) {
+    if (request.mainImageUrl) {
         // if we get imageURL from content.js, then run this
-        const imageUrl = request.imageUrl;
+        const imageUrl = request.mainImageUrl;
 
         const result = await fetch('http://localhost:3000/describe-image', {
             method: 'POST',
@@ -57,13 +64,30 @@ chrome.runtime.onMessage.addListener(async function(request, sender, sendRespons
         });
 
         const desc = await result.json();
-        chrome.tts.speak('Description:\n' + desc);
+        chrome.tts.speak(desc);
         console.log("Description: " + desc);
         console.log("Image description ended at: " + Date.now() + "  ms");
 
-    }
+    } else if (request.comparisonImage) {
+        // if we get imageURL from content.js, then run this
+        const imageUrl = request.comparisonImage;
 
-    if (message.action === 'triggerHelp') {
-        helpBtn.click();
+        const result = await fetch('http://localhost:3000/describe-image', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ imageUrl })
+        });
+
+        let desc = await result.json();
+        await new Promise((resolve, reject) => {
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                chrome.tabs.sendMessage(tabs[0].id, { message: desc });
+            });
+        });
+
+        console.log("Description: " + desc);
+        console.log("Image description ended at: " + Date.now() + "  ms");
     }
 });
