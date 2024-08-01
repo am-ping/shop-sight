@@ -1,14 +1,7 @@
 // Function to turn on the mic and listen to voice input
 async function listenVoice() {
-  const grammar =
-    "#JSGF V1.0; grammar colors; public <color> = aqua | azure | beige | bisque | black | blue | brown | chocolate | coral | crimson | cyan | fuchsia | ghostwhite | gold | goldenrod | gray | green | indigo | ivory | khaki | lavender | lime | linen | magenta | maroon | moccasin | navy | olive | orange | orchid | peru | pink | plum | purple | red | salmon | sienna | silver | snow | tan | teal | thistle | tomato | turquoise | violet | white | yellow ;";
-
   const SpeechRecognition =
     window.SpeechRecognition || window.webkitSpeechRecognition;
-  const SpeechGrammarList =
-    window.SpeechGrammarList || window.webkitSpeechGrammarList;
-  const SpeechRecognitionEvent =
-    window.SpeechRecognitionEvent || window.webkitSpeechRecognitionEvent;
 
   const recognition = new SpeechRecognition();
   recognition.lang = 'en-US';
@@ -205,17 +198,20 @@ async function readResults() {
   let imageUrl;
 
   if (ddSelected.includes("Featured")) {
-    for (let i = 6; i < 16; i++) {
-      title = document.querySelector(`[data-cel-widget="search_result_${i}"] [data-cy="title-recipe"]`).textContent.trim();
+    for (let i = 3; i < 13; i++) {
+      title = document.querySelectorAll(`[data-cy="title-recipe"]:nth-of-type(${1})`)[i].textContent.trim();
       link = document.querySelector(`[data-cel-widget="search_result_${i}"] [data-cy="title-recipe"] a`).href;
 
       if (title.includes("SponsoredSponsored You are seeing this ad based on the product’s relevance to your search query.Let us know  ")) {
         title = title.replace("SponsoredSponsored You are seeing this ad based on the product’s relevance to your search query.Let us know  ", "");
         link = document.querySelector(`[data-cel-widget="search_result_${i}"] [data-cy="title-recipe"] h2 a`).href;
       }
-        
+    
+      imageUrl = document.querySelectorAll(`[data-component-type="s-product-image"]:nth-of-type(${1}) img`)[i].src;
+
       // Store the link of the current product being read
       localStorage.setItem("currentProductLink", link);
+      localStorage.setItem("currentProductImage", imageUrl);
       console.log(title);
       await speak(title);
       await new Promise(resolve => setTimeout(resolve, 2500));
@@ -420,6 +416,21 @@ async function addToCart() {
     return null;
   }
 }
+
+// event listeners for keyboard shortcuts
+document.addEventListener('keydown', (event) => {
+  const key = event.key.toLowerCase();
+
+  if (event.altKey && event.ctrlKey) {
+      if (key === 'h') {
+        const voiceCmds = "Welcome to shop sight! Here are the commands you can use: To search for a product, say 'search for [product name]'. To sort the results, say 'sort by [criteria]'. If you want to read out the search results on the results page, say 'read results'. To open a product page, you can say 'view product'. For comparing products, use 'add to comparison' to select a product, and say 'compare products' to compare the selected products. You can also say 'compare price', 'compare rating' or 'compare images' for specific comparisons. To remove products from comparison, say 'remove comparison products'. To describe a product image on the product page, use the command 'describe image'. For reading detailed product information on the product page, say 'read product info'. To add a product to your cart on the product page, say 'add to cart'. Finally, if you want to stop the assistant from reading aloud, say 'stop'.";
+
+        speak(voiceCmds);
+      } else if (key === 'm') {
+        listenVoice();
+      }
+  }
+});
 
 // This listens for messages from the popup.js
 chrome.runtime.onMessage.addListener(async function(request, sender, sendResponse) {

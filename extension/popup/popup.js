@@ -35,24 +35,8 @@ listenBtn.addEventListener("click", async () => {
     }
 });
 
-// event listeners for keyboard shortcuts
-document.addEventListener('keydown', (event) => {
-    const key = event.key.toLowerCase();
-
-    if (event.altKey && event.ctrlKey) {
-        if (key === 'h') {
-            // trigger the Help button
-            helpBtn.click();
-        } else if (key === 'm') {
-            // trigger the Mic button
-            listenBtn.click();
-        }
-    }
-});
-
 chrome.runtime.onMessage.addListener(async function(request, sender, sendResponse) {
     if (request.mainImageUrl) {
-        // if we get imageURL from content.js, then run this
         const imageUrl = request.mainImageUrl;
 
         const result = await fetch('http://localhost:3000/describe-image', {
@@ -69,7 +53,6 @@ chrome.runtime.onMessage.addListener(async function(request, sender, sendRespons
         console.log("Image description ended at: " + Date.now() + "  ms");
 
     } else if (request.comparisonImage) {
-        // if we get imageURL from content.js, then run this
         const imageUrl = request.comparisonImage;
 
         const result = await fetch('http://localhost:3000/describe-image', {
