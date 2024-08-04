@@ -56,9 +56,9 @@ function determineVoiceCmd(str) {
     console.log("'read results' voice command issued at: " + Date.now() + "  ms");
     readResults();
 
-  } else if (str.includes("add") && str.includes("comparison")) {
+  } else if (str.includes("select") && str.includes("comparison")) {
     // run the selectProduct function if input includes the word "select", "product" and "comparison"
-    console.log("'add to comparison' voice command issued at: " + Date.now() + "  ms");
+    console.log("'select for comparison' voice command issued at: " + Date.now() + "  ms");
     selectProductForComparison();
     
   } else if (str.includes("compare products")) {
@@ -272,58 +272,49 @@ async function selectProductForComparison() {
   if (currentProductLink) {
     let comparisonProducts = JSON.parse(localStorage.getItem("comparisonProducts")) || [];
   
-    if (comparisonProducts.length < 2) {
-      comparisonProducts.push(currentProductLink);
-      localStorage.setItem("comparisonProducts", JSON.stringify(comparisonProducts));
+    comparisonProducts.push(currentProductLink);
+    localStorage.setItem("comparisonProducts", JSON.stringify(comparisonProducts));
 
-      await getImageDesc(currentProductImage);
-      
-      speak("Product selected for comparison.");
-    } else {
-      speak("You have already selected two products for comparison.");
-    }
+    await getImageDesc(currentProductImage);
+    
+    speak("Product selected for comparison.");
   }
 }
 
 async function compareProducts(str) {
   let comparisonProducts = JSON.parse(localStorage.getItem("comparisonProducts"));
-  if (comparisonProducts && comparisonProducts.length === 2) {
-    let [product1, product2] = comparisonProducts;
-    
-    // Fetch and compare product details
-    let details1 = await fetchProductDetails(product1);
-    let details2 = await fetchProductDetails(product2);
+
+  comparisonProducts.forEach(async (product, i) => {
+    let details = await fetchProductDetails(product);
     let comparisonText;
 
-    if (str == "all") {
-      comparisonText = 
-      `Product 1: ${details1.title}.
-      The price is ${details1.price}, and it has a rating of ${details1.stars} based on ${details1.numOfReviews}.
-      ${details1.about}. Image description: ${localStorage.getItem('product1')}.\n` +
-      `Product 2: ${details2.title}.
-      The price is ${details2.price}, and it has a rating of ${details2.stars} based on ${details2.numOfReviews}.
-      ${details2.about}. Image description: ${localStorage.getItem('product2')}.`;
+    if (comparisonProducts.length !== 0) {
 
-    } else if (str == "price") {
-      comparisonText = `Product 1: ${details1.title}. It's price is ${details1.price}.\n` +
-                       `product 2: ${details2.title}. It's price is ${details2.price}.`;
+      if (str == "all") {
+        comparisonText = 
+        `Product ${i + 1}: ${details.title}.
+        The price is ${details.price}, and it has a rating of ${details.stars} based on ${details.numOfReviews}.
+        ${details.about}. Image description: ${JSON.parse(localStorage.getItem("descriptions"))[i]}.\n`;
 
-    } else if (str == "rating") {
-      comparisonText = `Product 1: ${details1.title}, has a rating of ${details1.stars} based on ${details1.numOfReviews}, ` +
-                       `whereas product 2: ${details2.title}, has a rating of ${details2.stars} based on ${details2.numOfReviews}.`;
+      } else if (str == "price") {
+        comparisonText = `Product ${i + 1}: ${details.title}. It's price is ${details.price}.\n`;
 
-    } else if (str == "image") {
-      comparisonText = `Product 1: ${details1.title}. Image description: ${localStorage.getItem('product1')}.\n` +
-                       `product 2: ${details2.title}. Image Description: ${localStorage.getItem('product2')}.`;
+      } else if (str == "rating") {
+        comparisonText = `Product ${i + 1}: ${details.title}, has a rating of ${details.stars} based on ${details.numOfReviews}.\n`;
 
+      } else if (str == "image") {
+        comparisonText = `Product ${i + 1}: ${details.title}. Image description: ${JSON.parse(localStorage.getItem("descriptions"))[i]}.\n`;
+
+      }
+
+      console.log("Comparison details finished gathering at: " + Date.now() + "  ms");
+      speak(comparisonText);
+
+    } else {
+      speak("Please select two products for comparison.");
     }
 
-    console.log("Comparison details finished gathering at: " + Date.now() + "  ms");
-    speak(comparisonText);
-
-  } else {
-    speak("Please select two products for comparison.");
-  }
+  })
 }
 
 async function fetchProductDetails(url) {
@@ -353,9 +344,7 @@ async function clearComparison() {
 }
 
 async function getImageDesc(imageUrl) {
-  await new Promise((resolve, reject) => {
-    chrome.runtime.sendMessage({ comparisonImage: imageUrl });
-  });
+  chrome.runtime.sendMessage({ comparisonImage: imageUrl });
 }
 
 async function mainImageDesc() {
@@ -423,7 +412,7 @@ document.addEventListener('keydown', (event) => {
 
   if (event.altKey && event.ctrlKey) {
       if (key === 'h') {
-        const voiceCmds = "Welcome to shop sight! Here are the commands you can use: To search for a product, say 'search for [product name]'. To sort the results, say 'sort by [criteria]'. If you want to read out the search results on the results page, say 'read results'. To open a product page, you can say 'view product'. For comparing products, use 'add to comparison' to select a product, and say 'compare products' to compare the selected products. You can also say 'compare price', 'compare rating' or 'compare images' for specific comparisons. To remove products from comparison, say 'remove comparison products'. To describe a product image on the product page, use the command 'describe image'. For reading detailed product information on the product page, say 'read product info'. To add a product to your cart on the product page, say 'add to cart'. Finally, if you want to stop the assistant from reading aloud, say 'stop'.";
+        const voiceCmds = "Welcome to shop sight! Here are the commands you can use: To search for a product, say 'search for [product name]'. To sort the results, say 'sort by [criteria]'. If you want to read out the search results on the results page, say 'read results'. To open a product page, you can say 'view product'. For comparing products, use 'select for comparison' to select a product for comparison, and say 'compare products' to compare the selected products. You can also say 'compare price', 'compare rating' or 'compare images' for specific comparisons. To remove products from comparison, say 'remove comparison products'. To describe a product image on the product page, use the command 'describe image'. For reading detailed product information on the product page, say 'read product info'. To add a product to your cart on the product page, say 'add to cart'. Finally, if you want to stop the assistant from reading aloud, say 'stop'.";
 
         speak(voiceCmds);
       } else if (key === 'm') {
@@ -441,10 +430,16 @@ chrome.runtime.onMessage.addListener(async function(request, sender, sendRespons
   } else if (request.message) {
     // store image description in localStorage
     let desc = request.message;
+    let descriptions = JSON.parse(localStorage.getItem("descriptions")) || [];
+  
+    descriptions.push(desc);
+    localStorage.setItem("descriptions", JSON.stringify(descriptions));
+
+    /*
     if (localStorage.getItem('product1') == null) {
       localStorage.setItem('product1', desc);
     } else if (localStorage.getItem('product2') == null) {
       localStorage.setItem('product2', desc);
-    }
+    }*/
   }
 });
