@@ -191,25 +191,22 @@ async function sort(method) {
 
 async function readResults() {
   let ddSelected = document.querySelector("[aria-label='Sort by:']").textContent;
-  let titleElement;
-  let linkElement;
   let title;
   let link;
   let imageUrl;
 
   if (ddSelected.includes("Featured")) {
     for (let i = 3; i < 13; i++) {
-      title = document.querySelectorAll(`[data-cy="title-recipe"]:nth-of-type(${1})`)[i].textContent.trim();
-      link = document.querySelector(`[data-cel-widget="search_result_${i}"] [data-cy="title-recipe"] a`).href;
+      title = document.querySelectorAll(`[data-cy="title-recipe"]`)[i].textContent.trim();
+      link = document.querySelectorAll(`[data-cy="title-recipe"]`)[i].querySelector('a').href;
 
-      if (title.includes("SponsoredSponsored You are seeing this ad based on the product’s relevance to your search query.Let us know  ")) {
-        title = title.replace("SponsoredSponsored You are seeing this ad based on the product’s relevance to your search query.Let us know  ", "");
-        link = document.querySelector(`[data-cel-widget="search_result_${i}"] [data-cy="title-recipe"] h2 a`).href;
+      if (title.includes("SponsoredSponsored You are seeing this ad based on the product’s relevance to your search query.Let us know  ") || title.includes("Sponsored ")) {
+        continue;
       }
-    
-      imageUrl = document.querySelectorAll(`[data-component-type="s-product-image"]:nth-of-type(${1}) img`)[i].src;
 
-      // Store the link of the current product being read
+      imageUrl = document.querySelectorAll(`[data-cy="title-recipe"]`)[i].parentNode.previousElementSibling.querySelector('img').src;
+
+      // Store the link and image url of the current product being read
       localStorage.setItem("currentProductLink", link);
       localStorage.setItem("currentProductImage", imageUrl);
       console.log(title);
@@ -219,14 +216,9 @@ async function readResults() {
 
   } else if (ddSelected.includes("Best")) {
     for (let i = 0; i < 10; i++) {
-      titleElement = document.querySelectorAll(`[data-cy="title-recipe"]:nth-of-type(${1})`)[i];
-      if (titleElement == null) {
-        continue;
-      }
-      linkElement = document.querySelectorAll(`[data-cy="title-recipe"]:nth-of-type(${1}) a`)[i];
-      title = titleElement.textContent.trim();
-      link = linkElement.href;
-      imageUrl = document.querySelectorAll(`[data-component-type="s-product-image"]:nth-of-type(${1}) img`)[i].src;
+      title = document.querySelectorAll(`[data-cy="title-recipe"]`)[i].textContent.trim();
+      link = document.querySelectorAll(`[data-cy="title-recipe"] a`)[i].href;
+      imageUrl = document.querySelectorAll(`[data-component-type="s-product-image"] img`)[i].src;
         
       // Store the link of the current product being read
       localStorage.setItem("currentProductLink", link);
@@ -238,9 +230,9 @@ async function readResults() {
 
   } else {
     for (let i = 0; i < 10; i++) {
-      title = document.querySelectorAll(`[data-cy="title-recipe"]:nth-of-type(${1})`)[i].textContent.trim();
-      link = document.querySelectorAll(`[data-cy="title-recipe"]:nth-of-type(${1}) a`)[i].href;
-      imageUrl = document.querySelectorAll(`[data-component-type="s-product-image"]:nth-of-type(${1}) img`)[i].src;
+      title = document.querySelectorAll(`[data-cy="title-recipe"]`)[i].textContent.trim();
+      link = document.querySelectorAll(`[data-cy="title-recipe"] a`)[i].href;
+      imageUrl = document.querySelectorAll(`[data-component-type="s-product-image"] img`)[i].src;
 
       if (title.includes("SponsoredSponsored You are seeing this ad based on the product’s relevance to your search query.Let us know  ")) {
         title = title.replace("SponsoredSponsored You are seeing this ad based on the product’s relevance to your search query.Let us know  ", "");
@@ -427,6 +419,7 @@ chrome.runtime.onMessage.addListener(async function(request, sender, sendRespons
   if (request.action === 'listenVoice') {
     // then it runs the function called listenVoice
     await listenVoice();
+    
   } else if (request.message) {
     // store image description in localStorage
     let desc = request.message;
@@ -435,11 +428,5 @@ chrome.runtime.onMessage.addListener(async function(request, sender, sendRespons
     descriptions.push(desc);
     localStorage.setItem("descriptions", JSON.stringify(descriptions));
 
-    /*
-    if (localStorage.getItem('product1') == null) {
-      localStorage.setItem('product1', desc);
-    } else if (localStorage.getItem('product2') == null) {
-      localStorage.setItem('product2', desc);
-    }*/
   }
 });
