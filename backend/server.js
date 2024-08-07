@@ -1,8 +1,6 @@
 const express = require('express');
 const cors = require("cors");
 const OpenAI = require('openai');
-const fs = require('fs');
-const FormData = require('form-data');
 const app = express();
 const port = 3000;
 

@@ -21,7 +21,11 @@ git clone git@github.com:am-ping/shop-sight.git
 ```
 OPENAI_API_KEY=your_openai_api_key
 ```
-5. Start the server in the backend folder:
+5. Install the necessary dependencies in shop-sight-main/backend/:
+```
+npm install
+```
+6. Start the server in shop-sight-main/backend/:
 ```
 node server
 ```
