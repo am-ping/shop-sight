@@ -30,7 +30,7 @@ chrome.runtime.onMessage.addListener(async function(request) {
 
         let desc = await result.json();
 
-        await new Promise((resolve, reject) => {
+        await new Promise(() => {
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
                 chrome.tabs.sendMessage(tabs[0].id, { message: desc });
             });

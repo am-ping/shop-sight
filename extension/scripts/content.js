@@ -12,9 +12,9 @@ async function listenVoice() {
 
   recognition.onresult = (event) => {
     // this gets the user voice input transcript
-    let voiceText = event.results[0][0].transcript;
+    let str = event.results[0][0].transcript;
     // run determineVoiceCmd function with the voice input text as the argument
-    determineVoiceCmd(voiceText);
+    determineVoiceCmd(str);
   };
 
   recognition.onend = () => {
@@ -22,7 +22,6 @@ async function listenVoice() {
   }
   
   recognition.onerror = (event) => {
-    console.log('Error occurred in recognition: ' + event.error);
     return 'Error occurred in recognition: ' + event.error;
   };
 }
@@ -57,7 +56,7 @@ function determineVoiceCmd(str) {
     readResults();
 
   } else if (str.includes("select") && str.includes("comparison")) {
-    // run the selectProduct function if input includes the word "select", "product" and "comparison"
+    // run the selectProduct function if input includes the word "select" and "comparison"
     console.log("'select for comparison' voice command issued at: " + Date.now() + "  ms");
     selectProductForComparison();
     
@@ -78,7 +77,7 @@ function determineVoiceCmd(str) {
     console.log("'remove comparison products' voice command issued at: " + Date.now() + "  ms");
     clearComparison();
     
-  } else if (str.includes("view product")) {
+  } else if (str.includes("view product") || str.includes("select product")) {
     viewProduct();
     
   } else if (str.includes("describe") && str.includes("image")) {
@@ -280,7 +279,7 @@ async function compareProducts(str) {
     let details = await fetchProductDetails(product);
     let comparisonText;
 
-    if (comparisonProducts.length !== 0) {
+    if (comparisonProducts.length > 1) {
 
       if (str == "all") {
         comparisonText = 
@@ -303,7 +302,7 @@ async function compareProducts(str) {
       speak(comparisonText);
 
     } else {
-      speak("Please select two products for comparison.");
+      speak("Please select at least two products for comparison.");
     }
 
   })
@@ -402,9 +401,9 @@ async function addToCart() {
 document.addEventListener('keydown', (event) => {
   const key = event.key.toLowerCase();
 
-  if (event.altKey && event.ctrlKey) {
+  if (event.ctrlKey && event.altKey) {
       if (key === 'h') {
-        const voiceCmds = "Welcome to shop sight! Here are the commands you can use: To search for a product, say 'search for [product name]'. To sort the results, say 'sort by [criteria]'. If you want to read out the search results on the results page, say 'read results'. To select and open a product page, you can say 'view product' or 'select product'. For comparing products, use 'select for comparison' to select a product for comparison, and say 'compare products' to compare the selected products. You can also say 'compare price', 'compare rating' or 'compare images' for specific comparisons. To remove all products from comparison, say 'remove comparison products'. To describe a product image on the product page, use the command 'describe image'. For reading detailed product information on the product page, say 'read product info'. To add a product to your cart on the product page, say 'add to cart'. Finally, if you want to stop the assistant from reading aloud, say 'stop'.";
+        const voiceCmds = "Welcome to shop sight! Here are the commands you can use: To search for a product, say 'search for [product name]'. To sort the results, say 'sort by [criteria]'. If you want to read out the search results on the results page, say 'read results'. For comparing products, use 'select for comparison' to select a product for comparison, and say 'compare products' to compare the selected products. You can also say 'compare price', 'compare rating' or 'compare images' for specific comparisons. To remove all products from comparison, say 'remove comparison products'. To select and open a product page, you can say 'select product' or 'view product'. To describe a product image on the product page, use the command 'describe image'. For reading detailed product information on the product page, say 'read product info'. To add a product to your cart on the product page, say 'add to cart'. Finally, if you want to stop the assistant from reading aloud, say 'stop'.";
 
         speak(voiceCmds);
       } else if (key === 'm') {
